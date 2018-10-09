@@ -1,0 +1,3 @@
+FUNCTION int8 hasSuddenImpact ();
+FUNCTION le_result_t getSuddenImpact (double x OUT, double y OUT, double z OUT);
+FUNCTION le_result_t getCurrentAcceleration (double x OUT, double y OUT, double z OUT);

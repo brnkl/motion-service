@@ -1,0 +1,32 @@
+sandboxed: false
+version: 2.14.0
+start: auto
+
+executables:
+{
+  motionService = ( motionMonitor )
+}
+
+processes:
+{
+  envVars:
+  {
+    LE_LOG_LEVEL = DEBUG
+  }
+  run:
+  {
+     ( motionService )
+  }
+  faultAction: restartApp
+}
+
+bindings:
+{
+
+  motionService.motionMonitor.interrupt -> gpioService.le_gpioPin23
+}
+
+extern:
+{
+  motionService.motionMonitor.brnkl_motion
+}

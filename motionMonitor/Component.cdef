@@ -1,0 +1,27 @@
+cflags:
+{
+  -std=c99
+  -I$BRNKL_ROOT/apps/util
+}
+
+requires:
+{
+  api:
+  {
+     interrupt = le_gpio.api
+  }
+}
+
+provides:
+{
+  api:
+  {
+    $CURDIR/../brnkl_motion.api
+  }
+}
+
+sources:
+{
+  motionMonitor.c
+  $BRNKL_ROOT/apps/util/util.c
+}
