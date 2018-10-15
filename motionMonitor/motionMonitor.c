@@ -1,15 +1,19 @@
 #include "interfaces.h"
 #include "legato.h"
 #include "util.h"
+#include <pthread.h>
 
-static const char FormatStr[] =
-    "/sys/bus/i2c/devices/3-0068/iio:device0/in_%s_%s";
-static const char AccType[] = "accel";
-static const char GyroType[] = "anglvel";
-static const char CompX[] = "x_raw";
-static const char CompY[] = "y_raw";
-static const char CompZ[] = "z_raw";
+void *impactMonitor(void *);
+
+static const char FormatStr[] = "/sys/devices/i2c-0/0-0068/iio:device0/in_%s_%s";
+static const char AccType[]   = "accel";
+static const char GyroType[]  = "anglvel";
+static const char CompX[]     = "x_raw";
+static const char CompY[]     = "y_raw";
+static const char CompZ[]     = "z_raw";
 static const char CompScale[] = "scale";
+bool hasSuddenImpact          = false;
+static const int  impactThreshold = 20;
 
 typedef struct {
   double x;
@@ -17,50 +21,73 @@ typedef struct {
   double z;
 } Acceleration;
 
-bool hasSuddenImpact = false;
+pthread_t impact_thread;
+
 Acceleration suddenImpact = {0, 0, 0};
 
 /**
  * Reports the x, y and z accelerometer readings in meters per second squared.
  */
-le_result_t brnkl_motion_getCurrentAcceleration(double* xAcc,
-                                                double* yAcc,
-                                                double* zAcc) {
-  le_result_t r;
-  char path[256];
 
-  double scaling = 0.0;
-  int pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompScale);
-  LE_ASSERT(pathLen < sizeof(path));
-  r = ioutil_readDoubleFromFile(path, &scaling);
-  if (r != LE_OK) {
-    goto done;
-  }
+le_result_t brnkl_motion_getCurrentAcceleration(
+    double *xAcc,
+    double *yAcc,
+    double *zAcc
+)
+{
+    le_result_t r;
+    char path[256];
+    if(hasSuddenImpact){
+      LE_INFO("hasSuddenImpact");
+      hasSuddenImpact = false;
+    }
 
-  pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompX);
-  LE_ASSERT(pathLen < sizeof(path));
-  r = ioutil_readDoubleFromFile(path, xAcc);
-  if (r != LE_OK) {
-    goto done;
-  }
-  *xAcc *= scaling;
+    double scaling = 0.0;
+    int pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompScale);
+    LE_ASSERT(pathLen < sizeof(path));
+    r = ioutil_readDoubleFromFile(path, &scaling);
+    if (r != LE_OK)
+    {
+        goto done;
+    }
 
-  pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompY);
-  LE_ASSERT(pathLen < sizeof(path));
-  r = ioutil_readDoubleFromFile(path, yAcc);
-  if (r != LE_OK) {
-    goto done;
-  }
-  *yAcc *= scaling;
+    pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompX);
+    LE_ASSERT(pathLen < sizeof(path));
+    r = ioutil_readDoubleFromFile(path, xAcc);
+    if (r != LE_OK)
+    { 
+        goto done;
+    }
+    *xAcc *= scaling;
 
-  pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompZ);
-  LE_ASSERT(pathLen < sizeof(path));
-  r = ioutil_readDoubleFromFile(path, zAcc);
-  *zAcc *= scaling;
+    pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompY);
+    LE_ASSERT(pathLen < sizeof(path));
+    r = ioutil_readDoubleFromFile(path, yAcc);
+    if (r != LE_OK)
+    {
+        goto done;
+    }
+    *yAcc *= scaling;
+
+    pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompZ);
+    LE_ASSERT(pathLen < sizeof(path));
+    r = ioutil_readDoubleFromFile(path, zAcc);
+    *zAcc *= scaling;
 
 done:
-  LE_INFO("Showing accel: x: %f, y: %f, z: %f", *xAcc, *yAcc, *zAcc);
-  return r;
+    LE_INFO("Showing accel X: %f Y: %f Z: %f ", *xAcc, *yAcc, *zAcc);
+    return r;
+}
+
+/*
+*return 1 if hardware has been in a sudden impact.
+*/
+int8_t brnkl_motion_hasSuddenImpact() {
+  if(hasSuddenImpact){
+    hasSuddenImpact = false;
+    return 1;
+  }
+  return 0;
 }
 
 le_result_t brnkl_motion_getSuddenImpact(double* xAcc,
@@ -76,41 +103,48 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc,
   return LE_OK;
 }
 
-int8_t brnkl_motion_hasSuddenImpact() {
-  return hasSuddenImpact;
+/*
+*Monitors accelerometer from iio on 100ms intervals
+*Sets hasSuddenImpact flag when accelerometer surpasses threshold
+*/
+void *impactMonitor(void * ptr){
+
+  double x, y, z;
+
+  for(;;){
+
+    brnkl_motion_getCurrentAcceleration(&x, &y, &z);
+
+    if(
+      abs(x) + 
+      abs(y) + 
+      abs(z) > 
+      impactThreshold
+      )
+      hasSuddenImpact = true;
+    
+
+    usleep(100*1000);
+
+  }
+  return ptr;
 }
 
-// take a reading but make sure its "larger" than
-// whatever is already in the buffer
-void interruptChangeHandler(bool state, void* ctx) {
-  double x, y, z;
-  le_result_t r = brnkl_motion_getCurrentAcceleration(&x, &y, &z);
-  LE_INFO("TRIGGERED x:%f y:%f z:%f", x, y, z);
-  if (r == LE_OK) {
-    bool updateX = fabs(x) > fabs(suddenImpact.x);
-    bool updateY = fabs(y) > fabs(suddenImpact.y);
-    bool updateZ = fabs(z) > fabs(suddenImpact.z);
-    if (updateX) {
-      suddenImpact.x = x;
-    }
-    if (updateY) {
-      suddenImpact.y = y;
-    }
-    if (updateZ) {
-      suddenImpact.z = z;
-    }
-    if (updateX || updateY || updateZ) {
-      hasSuddenImpact = true;
-    }
+/*
+*Create thread to monitor accelerometer iio
+*/
+void initThread(){
+  int thread;
+
+  thread = pthread_create( &impact_thread, NULL, impactMonitor, NULL);
+
+  if(thread){
+    LE_INFO("Reader Thread Created");
+  }else{
+    LE_ERROR("Reader Thread Creation Failed");
   }
 }
 
-void initGpio() {
-  interrupt_SetInput(INTERRUPT_ACTIVE_HIGH);
-  interrupt_AddChangeEventHandler(INTERRUPT_EDGE_RISING, interruptChangeHandler,
-                                  NULL, 0);
-}
-
 COMPONENT_INIT {
-  initGpio();
+  initThread();
 }
