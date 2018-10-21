@@ -4,6 +4,7 @@
 #include <pthread.h>
 
 #define N_CHANGE_BLOCKS 200
+#define SAMPLE_PERIOD_MS 100
 
 void *impactMonitor(void *);
 
@@ -145,7 +146,7 @@ void *impactMonitor(void * ptr){
     if(r != LE_OK)
       LE_ERROR("Impact Not Recorded");
 
-    usleep(100*1000);
+    usleep(SAMPLE_PERIOD_MS*1000);
 
   }
   return ptr;
