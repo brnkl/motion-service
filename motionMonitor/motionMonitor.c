@@ -79,9 +79,9 @@ done:
 
 le_result_t recordImpact(double* xAcc, double* yAcc, double* zAcc){
   if( 
-    totalImpacts > sizeof(xAccImpact) ||
-    totalImpacts > sizeof(yAccImpact) ||
-    totalImpacts > sizeof(zAccImpact) 
+    totalImpacts > N_CHANGE_BLOCKS ||
+    totalImpacts > N_CHANGE_BLOCKS ||
+    totalImpacts > N_CHANGE_BLOCKS
     )
     return LE_OUT_OF_RANGE;
 
