@@ -101,26 +101,30 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc, size_t *xSize,
 
   if(!totalImpacts)
     LE_INFO("No Sudden Impacts to Report");
+  else {
+    pthread_mutex_lock(&impactMutex);
+    //check 
 
-  //check 
+    if(
+        totalImpacts < *xSize ||
+        totalImpacts < *ySize ||
+        totalImpacts < *zSize
+        )
+        return LE_OUT_OF_RANGE;
 
-  if(
-      totalImpacts < *xSize ||
-      totalImpacts < *ySize ||
-      totalImpacts < *zSize
-      )
-      return LE_OUT_OF_RANGE;
+    for(int i = 0; i < totalImpacts; i++){
+      xAcc[i] = xAccImpact[i];
+      yAcc[i] = yAccImpact[i];
+      zAcc[i] = zAccImpact[i];
+    }
+   
+    *xSize = *ySize = *zSize = totalImpacts;
 
-  for(int i = 0; i < totalImpacts; i++){
-    xAcc[i] = xAccImpact[i];
-    yAcc[i] = yAccImpact[i];
-    zAcc[i] = zAccImpact[i];
+
+    totalImpacts = 0;
+
+    pthread_mutex_unlock(&impactMutex);
   }
- 
-  *xSize = *ySize = *zSize = totalImpacts;
-
-
-  totalImpacts = 0;
 
   return LE_OK;
 }
