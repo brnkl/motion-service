@@ -2,8 +2,25 @@
 #include "legato.h"
 #include "util.h"
 #include <pthread.h>
+#include <semaphore.h>
+
+#define MAX_ARRAY_SIZE 200
 
 void *impactMonitor(void *);
+
+typedef struct{
+  double x;
+  double y;
+  double z;
+} Acceleration;
+
+
+
+double xAccImpact [MAX_ARRAY_SIZE];
+double yAccImpact [MAX_ARRAY_SIZE];
+double zAccImpact [MAX_ARRAY_SIZE];
+
+
 
 static const char FormatStr[] = "/sys/devices/i2c-0/0-0068/iio:device0/in_%s_%s";
 static const char AccType[]   = "accel";
@@ -12,22 +29,18 @@ static const char CompX[]     = "x_raw";
 static const char CompY[]     = "y_raw";
 static const char CompZ[]     = "z_raw";
 static const char CompScale[] = "scale";
-bool hasSuddenImpact          = false;
-static const int  impactThreshold = 20;
-
-typedef struct {
-  double x;
-  double y;
-  double z;
-} Acceleration;
-
-pthread_t impact_thread;
+int totalImpacts              = 0; 
+static const double impactThreshold = 20.0;
 
 Acceleration suddenImpact = {0, 0, 0};
 
-/**
+pthread_t impact_thread;
+sem_t impact_mutex;
+
+
+/*
  * Reports the x, y and z accelerometer readings in meters per second squared.
- */
+*/
 
 le_result_t brnkl_motion_getCurrentAcceleration(
     double *xAcc,
@@ -37,10 +50,6 @@ le_result_t brnkl_motion_getCurrentAcceleration(
 {
     le_result_t r;
     char path[256];
-    if(hasSuddenImpact){
-      LE_INFO("hasSuddenImpact");
-      hasSuddenImpact = false;
-    }
 
     double scaling = 0.0;
     int pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompScale);
@@ -80,26 +89,40 @@ done:
 }
 
 /*
-*return 1 if hardware has been in a sudden impact.
+* Return 1 if hardware has been in a sudden impact.
 */
 int8_t brnkl_motion_hasSuddenImpact() {
-  if(hasSuddenImpact){
-    hasSuddenImpact = false;
-    return 1;
-  }
   return 0;
 }
 
+//implement case for full array, or solution to not getting a full array
+void recordImpact(double* xAcc,
+              double* yAcc,
+              double* zAcc){
+
+  //time = (unsigned long)time(NULL)
+
+  xAccImpact[totalImpacts] = *xAcc;
+  yAccImpact[totalImpacts] = *yAcc;
+  zAccImpact[totalImpacts] = *zAcc;
+
+  totalImpacts++;
+  LE_INFO("New Impact, totalImpacts: %d", totalImpacts);
+
+  for(int i = 0; i < totalImpacts; i++){
+    LE_INFO("ImpactOf X: %f Y: %f Z: %f ", xAccImpact[i], yAccImpact[i], zAccImpact[i]);
+  }
+}
+
+/*
+* Return array of sudden impacts(Acceleration)
+*/
+
 le_result_t brnkl_motion_getSuddenImpact(double* xAcc,
-                                         double* yAcc,
-                                         double* zAcc) {
-  *xAcc = suddenImpact.x;
-  *yAcc = suddenImpact.y;
-  *zAcc = suddenImpact.z;
-  suddenImpact.x = 0;
-  suddenImpact.y = 0;
-  suddenImpact.z = 0;
-  hasSuddenImpact = false;
+              double* yAcc,
+              double* zAcc) {
+  //Return Array of Sudden Impacts
+  //*impactArray =  impactArr;
   return LE_OK;
 }
 
@@ -115,13 +138,18 @@ void *impactMonitor(void * ptr){
 
     brnkl_motion_getCurrentAcceleration(&x, &y, &z);
 
-    if(
-      abs(x) + 
-      abs(y) + 
-      abs(z) > 
-      impactThreshold
-      )
-      hasSuddenImpact = true;
+    double euclidian = sqrt(x*x + y*y + z*z);
+
+    if(euclidian > impactThreshold){
+      LE_INFO("euclidian : %f", euclidian);
+      //3. add x, y, z to impact array
+      sem_wait(&impact_mutex);
+      LE_INFO("addingImpact");
+
+      recordImpact(&x, &y, &z);
+
+      sem_post(&impact_mutex);
+      }
     
 
     usleep(100*1000);
@@ -134,14 +162,15 @@ void *impactMonitor(void * ptr){
 *Create thread to monitor accelerometer iio
 */
 void initThread(){
-  int thread;
+  int thread, mutx;
 
   thread = pthread_create( &impact_thread, NULL, impactMonitor, NULL);
+  mutx   = sem_init(&impact_mutex, 0, 1);
 
-  if(thread){
+  if(thread && mutx){
     LE_INFO("Reader Thread Created");
   }else{
-    LE_ERROR("Reader Thread Creation Failed");
+    LE_ERROR("Reader Thread or Mutex Creation Failed");
   }
 }
 
