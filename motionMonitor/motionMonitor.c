@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#define MAX_ARRAY_SIZE 200
+#define N_CHANGE_BLOCKS 200
 
 void *impactMonitor(void *);
 
@@ -16,9 +16,9 @@ typedef struct{
 
 
 
-double xAccImpact [MAX_ARRAY_SIZE];
-double yAccImpact [MAX_ARRAY_SIZE];
-double zAccImpact [MAX_ARRAY_SIZE];
+double xAccImpact [N_CHANGE_BLOCKS];
+double yAccImpact [N_CHANGE_BLOCKS];
+double zAccImpact [N_CHANGE_BLOCKS];
 
 
 
@@ -88,13 +88,6 @@ done:
     return r;
 }
 
-/*
-* Return 1 if hardware has been in a sudden impact.
-*/
-int8_t brnkl_motion_hasSuddenImpact() {
-  return 0;
-}
-
 //implement case for full array, or solution to not getting a full array
 void recordImpact(double* xAcc,
               double* yAcc,
@@ -118,11 +111,23 @@ void recordImpact(double* xAcc,
 * Return array of sudden impacts(Acceleration)
 */
 
-le_result_t brnkl_motion_getSuddenImpact(double* xAcc,
-              double* yAcc,
-              double* zAcc) {
-  //Return Array of Sudden Impacts
-  //*impactArray =  impactArr;
+le_result_t brnkl_motion_getSuddenImpact(double* xAcc, size_t *xSize,
+              double* yAcc, size_t *ySize,
+              double* zAcc, size_t *zSize) {
+
+  if(!totalImpacts)
+    LE_INFO("No Sudden Impacts to Report");
+
+  *xSize = *ySize = *zSize = totalImpacts;
+
+  xAcc = xAccImpact;
+  yAcc = yAccImpact;
+  zAcc = zAccImpact;
+
+  //Flush Arrays
+  
+  totalImpacts = 0;
+
   return LE_OK;
 }
 

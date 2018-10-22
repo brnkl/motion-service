@@ -1,3 +1,5 @@
-FUNCTION int8 hasSuddenImpact ();
-FUNCTION le_result_t getSuddenImpact (double x OUT, double y OUT, double z OUT);
+DEFINE N_CHANGE_BLOCKS = 200;
+
+FUNCTION le_result_t getSuddenImpact (double x [N_CHANGE_BLOCKS] OUT, double y [N_CHANGE_BLOCKS] OUT, double z [N_CHANGE_BLOCKS] OUT);
 FUNCTION le_result_t getCurrentAcceleration (double x OUT, double y OUT, double z OUT);
+ 
