@@ -76,14 +76,22 @@ done:
     return r;
 }
 
-void recordImpact(double* xAcc, double* yAcc, double* zAcc){
+le_result_t recordImpact(double* xAcc, double* yAcc, double* zAcc){
+  if( 
+    totalImpacts > sizeof(xAccImpact) ||
+    totalImpacts > sizeof(yAccImpact) ||
+    totalImpacts > sizeof(zAccImpact) 
+    )
+    return LE_OUT_OF_RANGE;
+
   timestamps[totalImpacts] = GetCurrentTimestamp();
   xAccImpact[totalImpacts] = *xAcc;
   yAccImpact[totalImpacts] = *yAcc;
   zAccImpact[totalImpacts] = *zAcc;
   totalImpacts++;
-
   LE_INFO("New Impact, totalImpacts: %d", totalImpacts);
+
+  return LE_OK;
 }
 
 le_result_t brnkl_motion_getSuddenImpact(double* xAcc, size_t *xSize,
@@ -94,14 +102,13 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc, size_t *xSize,
     LE_INFO("No Sudden Impacts to Report");
 
   //check 
-  if( 
-    totalImpacts > sizeof(xAccImpact) ||
-    totalImpacts > sizeof(yAccImpact) ||
-    totalImpacts > sizeof(zAccImpact) 
-    )
-    return LE_OUT_OF_RANGE;
-  
-  *xSize = *ySize = *zSize = totalImpacts;
+
+  if(
+      totalImpacts < *xSize ||
+      totalImpacts < *ySize ||
+      totalImpacts < *zSize
+      )
+      return LE_OUT_OF_RANGE;
 
   for(int i = 0; i < totalImpacts; i++){
     xAcc[i] = xAccImpact[i];
@@ -109,6 +116,9 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc, size_t *xSize,
     zAcc[i] = zAccImpact[i];
   }
  
+  *xSize = *ySize = *zSize = totalImpacts;
+
+
   totalImpacts = 0;
 
   return LE_OK;
@@ -120,6 +130,7 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc, size_t *xSize,
 */
 void *impactMonitor(void * ptr){
   double x, y, z;
+  le_result_t r = LE_OK;
   for(;;){
     brnkl_motion_getCurrentAcceleration(&x, &y, &z);
 
@@ -128,9 +139,12 @@ void *impactMonitor(void * ptr){
     if(impactMagnitude > impactThreshold){
       //3. add x, y, z to impact array
       pthread_mutex_lock(&impactMutex);
-      recordImpact(&x, &y, &z);
+      r = recordImpact(&x, &y, &z);
       pthread_mutex_unlock(&impactMutex);
       }
+    if(r != LE_OK)
+      LE_ERROR("Impact Not Recorded");
+
     usleep(100*1000);
 
   }
