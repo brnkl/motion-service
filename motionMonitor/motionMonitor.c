@@ -2,7 +2,6 @@
 #include "legato.h"
 #include "util.h"
 #include <pthread.h>
-#include <semaphore.h>
 
 #define N_CHANGE_BLOCKS 200
 
@@ -32,7 +31,7 @@ static const double impactThreshold = 20.0;
 Acceleration suddenImpact = {0, 0, 0};
 
 pthread_t impactThread;
-sem_t impactMutex;
+pthread_mutex_t impactMutex;
 
 
 /*
@@ -127,9 +126,9 @@ void *impactMonitor(void * ptr){
     if(euclidian > impactThreshold){
       LE_INFO("euclidian : %f", euclidian);
       //3. add x, y, z to impact array
-      sem_wait(&impactMutex);
+      pthread_mutex_lock(&impactMutex);
       recordImpact(&x, &y, &z);
-      sem_post(&impactMutex);
+      pthread_mutex_unlock(&impactMutex);
       }
     usleep(100*1000);
 
@@ -142,10 +141,10 @@ void *impactMonitor(void * ptr){
 */
 void initThread(){
   int thread, mutx;
-
+  LE_INFO("initThread called");
+  mutx   = pthread_mutex_init(&impactMutex, NULL);
   thread = pthread_create( &impactThread, NULL, impactMonitor, NULL);
-  mutx   = sem_init(&impactMutex, 0, 1);
-
+  LE_INFO("mutexResult: %d", mutx);
   if(thread && mutx){
     LE_INFO("Reader Thread Created");
   }else{
