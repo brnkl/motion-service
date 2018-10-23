@@ -48,16 +48,12 @@ le_result_t brnkl_motion_getCurrentAcceleration(
     char path[256];
 
     double scaling = 0.0;
-    int pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompScale);
-    LE_ASSERT(pathLen < sizeof(path));
     r = ioutil_readDoubleFromFile(path, &scaling);
     if (r != LE_OK)
     {
         goto done;
     }
 
-    pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompX);
-    LE_ASSERT(pathLen < sizeof(path));
     r = ioutil_readDoubleFromFile(path, xAcc);
     if (r != LE_OK)
     { 
@@ -65,8 +61,6 @@ le_result_t brnkl_motion_getCurrentAcceleration(
     }
     *xAcc *= scaling;
 
-    pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompY);
-    LE_ASSERT(pathLen < sizeof(path));
     r = ioutil_readDoubleFromFile(path, yAcc);
     if (r != LE_OK)
     {
@@ -74,8 +68,6 @@ le_result_t brnkl_motion_getCurrentAcceleration(
     }
     *yAcc *= scaling;
 
-    pathLen = snprintf(path, sizeof(path), FormatStr, AccType, CompZ);
-    LE_ASSERT(pathLen < sizeof(path));
     r = ioutil_readDoubleFromFile(path, zAcc);
     *zAcc *= scaling;
 
@@ -85,7 +77,7 @@ done:
 }
 
 void recordImpact(double* xAcc, double* yAcc, double* zAcc){
-  timestamps[totalImpacts] = (unsigned long)time(NULL);
+  timestamps[totalImpacts] = GetCurrentTimestamp();
   xAccImpact[totalImpacts] = *xAcc;
   yAccImpact[totalImpacts] = *yAcc;
   zAccImpact[totalImpacts] = *zAcc;
@@ -101,12 +93,22 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc, size_t *xSize,
   if(!totalImpacts)
     LE_INFO("No Sudden Impacts to Report");
 
+  //check 
+  if( 
+    totalImpacts > sizeof(xAccImpact) ||
+    totalImpacts > sizeof(yAccImpact) ||
+    totalImpacts > sizeof(zAccImpact) 
+    )
+    return LE_FORMAT_ERROR;
+  
   *xSize = *ySize = *zSize = totalImpacts;
 
-  xAcc = xAccImpact;
-  yAcc = yAccImpact;
-  zAcc = zAccImpact;
-
+  for(int i = 0; i < totalImpacts; i++){
+    xAcc[i] = xAccImpact[i];
+    yAcc[i] = yAccImpact[i];
+    zAcc[i] = zAccImpact[i];
+  }
+ 
   totalImpacts = 0;
 
   return LE_OK;
@@ -121,10 +123,9 @@ void *impactMonitor(void * ptr){
   for(;;){
     brnkl_motion_getCurrentAcceleration(&x, &y, &z);
 
-    double euclidian = sqrt(x*x + y*y + z*z);
+    double impactMagnitude = sqrt(x*x + y*y + z*z);
 
-    if(euclidian > impactThreshold){
-      LE_INFO("euclidian : %f", euclidian);
+    if(impactMagnitude > impactThreshold){
       //3. add x, y, z to impact array
       pthread_mutex_lock(&impactMutex);
       recordImpact(&x, &y, &z);
@@ -145,10 +146,10 @@ void initThread(){
   mutx   = pthread_mutex_init(&impactMutex, NULL);
   thread = pthread_create( &impactThread, NULL, impactMonitor, NULL);
   LE_INFO("mutexResult: %d", mutx);
-  if(thread && mutx){
-    LE_INFO("Reader Thread Created");
-  }else{
+  if(thread || mutx){
     LE_ERROR("Reader Thread or Mutex Creation Failed");
+  }else{
+    LE_INFO("Reader Thread Created");
   }
 }
 
