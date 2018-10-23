@@ -31,8 +31,8 @@ static const double impactThreshold = 20.0;
 
 Acceleration suddenImpact = {0, 0, 0};
 
-pthread_t impact_thread;
-sem_t impact_mutex;
+pthread_t impactThread;
+sem_t impactMutex;
 
 
 /*
@@ -127,9 +127,9 @@ void *impactMonitor(void * ptr){
     if(euclidian > impactThreshold){
       LE_INFO("euclidian : %f", euclidian);
       //3. add x, y, z to impact array
-      sem_wait(&impact_mutex);
+      sem_wait(&impactMutex);
       recordImpact(&x, &y, &z);
-      sem_post(&impact_mutex);
+      sem_post(&impactMutex);
       }
     usleep(100*1000);
 
@@ -143,8 +143,8 @@ void *impactMonitor(void * ptr){
 void initThread(){
   int thread, mutx;
 
-  thread = pthread_create( &impact_thread, NULL, impactMonitor, NULL);
-  mutx   = sem_init(&impact_mutex, 0, 1);
+  thread = pthread_create( &impactThread, NULL, impactMonitor, NULL);
+  mutx   = sem_init(&impactMutex, 0, 1);
 
   if(thread && mutx){
     LE_INFO("Reader Thread Created");
