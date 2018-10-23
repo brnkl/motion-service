@@ -99,7 +99,7 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc, size_t *xSize,
     totalImpacts > sizeof(yAccImpact) ||
     totalImpacts > sizeof(zAccImpact) 
     )
-    return LE_FORMAT_ERROR;
+    return LE_OUT_OF_RANGE;
   
   *xSize = *ySize = *zSize = totalImpacts;
 
