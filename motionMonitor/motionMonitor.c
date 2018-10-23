@@ -14,14 +14,10 @@ typedef struct{
   double z;
 } Acceleration;
 
-
-
 double xAccImpact [N_CHANGE_BLOCKS];
 double yAccImpact [N_CHANGE_BLOCKS];
 double zAccImpact [N_CHANGE_BLOCKS];
 uint64_t timestamps [N_CHANGE_BLOCKS];
-
-
 
 static const char FormatStr[] = "/sys/devices/i2c-0/0-0068/iio:device0/in_%s_%s";
 static const char AccType[]   = "accel";
@@ -89,24 +85,15 @@ done:
     return r;
 }
 
-//implement case for full array, or solution to not getting a full array
-void recordImpact(double* xAcc,
-              double* yAcc,
-              double* zAcc){
-
-  //time = (unsigned long)time(NULL)
+void recordImpact(double* xAcc, double* yAcc, double* zAcc){
   timestamps[totalImpacts] = (unsigned long)time(NULL);
   xAccImpact[totalImpacts] = *xAcc;
   yAccImpact[totalImpacts] = *yAcc;
   zAccImpact[totalImpacts] = *zAcc;
-
   totalImpacts++;
+
   LE_INFO("New Impact, totalImpacts: %d", totalImpacts);
 }
-
-/*
-* Return array of sudden impacts(Acceleration)
-*/
 
 le_result_t brnkl_motion_getSuddenImpact(double* xAcc, size_t *xSize,
               double* yAcc, size_t *ySize,
@@ -131,11 +118,8 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc, size_t *xSize,
 *Sets hasSuddenImpact flag when accelerometer surpasses threshold
 */
 void *impactMonitor(void * ptr){
-
   double x, y, z;
-
   for(;;){
-
     brnkl_motion_getCurrentAcceleration(&x, &y, &z);
 
     double euclidian = sqrt(x*x + y*y + z*z);
@@ -144,14 +128,9 @@ void *impactMonitor(void * ptr){
       LE_INFO("euclidian : %f", euclidian);
       //3. add x, y, z to impact array
       sem_wait(&impact_mutex);
-      LE_INFO("addingImpact");
-
       recordImpact(&x, &y, &z);
-
       sem_post(&impact_mutex);
       }
-    
-
     usleep(100*1000);
 
   }
