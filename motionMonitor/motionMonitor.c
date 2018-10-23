@@ -19,6 +19,7 @@ typedef struct{
 double xAccImpact [N_CHANGE_BLOCKS];
 double yAccImpact [N_CHANGE_BLOCKS];
 double zAccImpact [N_CHANGE_BLOCKS];
+uint64_t timestamps [N_CHANGE_BLOCKS];
 
 
 
@@ -94,17 +95,13 @@ void recordImpact(double* xAcc,
               double* zAcc){
 
   //time = (unsigned long)time(NULL)
-
+  timestamps[totalImpacts] = (unsigned long)time(NULL);
   xAccImpact[totalImpacts] = *xAcc;
   yAccImpact[totalImpacts] = *yAcc;
   zAccImpact[totalImpacts] = *zAcc;
 
   totalImpacts++;
   LE_INFO("New Impact, totalImpacts: %d", totalImpacts);
-
-  for(int i = 0; i < totalImpacts; i++){
-    LE_INFO("ImpactOf X: %f Y: %f Z: %f ", xAccImpact[i], yAccImpact[i], zAccImpact[i]);
-  }
 }
 
 /*
@@ -124,8 +121,6 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc, size_t *xSize,
   yAcc = yAccImpact;
   zAcc = zAccImpact;
 
-  //Flush Arrays
-  
   totalImpacts = 0;
 
   return LE_OK;
