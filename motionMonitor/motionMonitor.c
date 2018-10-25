@@ -19,8 +19,7 @@ double yAccImpact[N_CHANGE_BLOCKS];
 double zAccImpact[N_CHANGE_BLOCKS];
 uint64_t timestamps[N_CHANGE_BLOCKS];
 
-static const char FormatStr[] =
-    "/sys/devices/i2c-0/0-0068/iio:device0/in_%s_%s";
+static const char FormatStr[] = "/sys/bus/iio/devices/iio:device0/in_%s_%s";
 static const char AccType[] = "accel";
 static const char GyroType[] = "anglvel";
 static const char CompX[] = "x_raw";
@@ -46,28 +45,31 @@ le_result_t brnkl_motion_getCurrentAcceleration(double* xAcc,
   char path[256];
 
   double scaling = 0.0;
+  snprintf(path, sizeof(path), FormatStr, AccType, CompScale);
   r = ioutil_readDoubleFromFile(path, &scaling);
   if (r != LE_OK) {
     goto done;
   }
 
+  snprintf(path, sizeof(path), FormatStr, AccType, CompX);
   r = ioutil_readDoubleFromFile(path, xAcc);
   if (r != LE_OK) {
     goto done;
   }
   *xAcc *= scaling;
 
+  snprintf(path, sizeof(path), FormatStr, AccType, CompY);
   r = ioutil_readDoubleFromFile(path, yAcc);
   if (r != LE_OK) {
     goto done;
   }
   *yAcc *= scaling;
 
+  snprintf(path, sizeof(path), FormatStr, AccType, CompZ);
   r = ioutil_readDoubleFromFile(path, zAcc);
   *zAcc *= scaling;
 
 done:
-  LE_INFO("Showing accel X: %f Y: %f Z: %f ", *xAcc, *yAcc, *zAcc);
   return r;
 }
 
@@ -91,20 +93,23 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc,
                                          double* yAcc,
                                          size_t* ySize,
                                          double* zAcc,
-                                         size_t* zSize) {
+                                         size_t* zSize,
+                                         uint64_t* timestampssOut,
+                                         size_t* timeSize) {
   if (!totalImpacts)
     LE_INFO("No Sudden Impacts to Report");
   else {
     pthread_mutex_lock(&impactMutex);
     // check
 
-    if (totalImpacts < *xSize || totalImpacts < *ySize || totalImpacts < *zSize)
+    if (totalImpacts > *xSize || totalImpacts > *ySize || totalImpacts > *zSize)
       return LE_OUT_OF_RANGE;
 
     for (int i = 0; i < totalImpacts; i++) {
       xAcc[i] = xAccImpact[i];
       yAcc[i] = yAccImpact[i];
       zAcc[i] = zAccImpact[i];
+      timestampssOut[i] = timestamps[i];
     }
 
     *xSize = *ySize = *zSize = totalImpacts;
