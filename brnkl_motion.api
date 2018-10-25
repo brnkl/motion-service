@@ -1,5 +1,13 @@
 DEFINE N_CHANGE_BLOCKS = 200;
 
-FUNCTION le_result_t getSuddenImpact (double x [N_CHANGE_BLOCKS] OUT, double y [N_CHANGE_BLOCKS] OUT, double z [N_CHANGE_BLOCKS] OUT);
-FUNCTION le_result_t getCurrentAcceleration (double x OUT, double y OUT, double z OUT);
- 
+FUNCTION le_result_t getSuddenImpact(
+  double x [N_CHANGE_BLOCKS] OUT,
+  double y [N_CHANGE_BLOCKS] OUT,
+  double z [N_CHANGE_BLOCKS] OUT,
+  uint64 timestamps[N_CHANGE_BLOCKS] OUT
+);
+FUNCTION le_result_t getCurrentAcceleration(
+  double x OUT,
+  double y OUT,
+  double z OUT
+);
