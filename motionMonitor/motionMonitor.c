@@ -5,7 +5,7 @@
 
 #define N_CHANGE_BLOCKS 200
 #define SAMPLE_PERIOD_MS 100
-#define DEFAULT_THRESHOLD_MS2 10
+#define DEFAULT_THRESHOLD_MS2 17
 
 void* impactMonitor(void*);
 
