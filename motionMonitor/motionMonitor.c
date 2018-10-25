@@ -102,7 +102,7 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc,
     pthread_mutex_lock(&impactMutex);
     // check
 
-    if (totalImpacts < *xSize || totalImpacts < *ySize || totalImpacts < *zSize)
+    if (totalImpacts > *xSize || totalImpacts > *ySize || totalImpacts > *zSize)
       return LE_OUT_OF_RANGE;
 
     for (int i = 0; i < totalImpacts; i++) {
