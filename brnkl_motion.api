@@ -6,6 +6,9 @@ FUNCTION le_result_t getSuddenImpact(
   double z [N_CHANGE_BLOCKS] OUT,
   uint64 timestamps[N_CHANGE_BLOCKS] OUT
 );
+
+FUNCTION int8 hasSuddenImpact();
+
 FUNCTION le_result_t getCurrentAcceleration(
   double x OUT,
   double y OUT,
