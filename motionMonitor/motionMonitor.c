@@ -94,7 +94,9 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc,
                                          double* yAcc,
                                          size_t* ySize,
                                          double* zAcc,
-                                         size_t* zSize) {
+                                         size_t* zSize,
+                                         uint64_t* timestampssOut,
+                                         size_t* timeSize) {
   if (!totalImpacts)
     LE_INFO("No Sudden Impacts to Report");
   else {
@@ -108,6 +110,7 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc,
       xAcc[i] = xAccImpact[i];
       yAcc[i] = yAccImpact[i];
       zAcc[i] = zAccImpact[i];
+      timestampssOut[i] = timestamps[i];
     }
 
     *xSize = *ySize = *zSize = totalImpacts;
