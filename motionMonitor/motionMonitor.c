@@ -45,23 +45,27 @@ le_result_t brnkl_motion_getCurrentAcceleration(double* xAcc,
   char path[256];
 
   double scaling = 0.0;
+  snprintf(path, sizeof(path), FormatStr, AccType, CompScale);
   r = ioutil_readDoubleFromFile(path, &scaling);
   if (r != LE_OK) {
     goto done;
   }
 
+  snprintf(path, sizeof(path), FormatStr, AccType, CompX);
   r = ioutil_readDoubleFromFile(path, xAcc);
   if (r != LE_OK) {
     goto done;
   }
   *xAcc *= scaling;
 
+  snprintf(path, sizeof(path), FormatStr, AccType, CompY);
   r = ioutil_readDoubleFromFile(path, yAcc);
   if (r != LE_OK) {
     goto done;
   }
   *yAcc *= scaling;
 
+  snprintf(path, sizeof(path), FormatStr, AccType, CompZ);
   r = ioutil_readDoubleFromFile(path, zAcc);
   *zAcc *= scaling;
 
