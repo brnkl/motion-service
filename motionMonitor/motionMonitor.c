@@ -82,6 +82,10 @@ le_result_t recordImpact(struct suddenImpacts_t* it,
   return LE_OK;
 }
 
+int8_t brnkl_motion_hasSuddenImpact() {
+  return impacts.nValues > 0;
+}
+
 le_result_t brnkl_motion_getSuddenImpact(double* xAcc,
                                          size_t* xSize,
                                          double* yAcc,
