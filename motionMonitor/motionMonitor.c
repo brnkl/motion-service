@@ -19,8 +19,7 @@ double yAccImpact[N_CHANGE_BLOCKS];
 double zAccImpact[N_CHANGE_BLOCKS];
 uint64_t timestamps[N_CHANGE_BLOCKS];
 
-static const char FormatStr[] =
-    "/sys/devices/i2c-0/0-0068/iio:device0/in_%s_%s";
+static const char FormatStr[] = "/sys/bus/iio/devices/iio:device0/in_%s_%s";
 static const char AccType[] = "accel";
 static const char GyroType[] = "anglvel";
 static const char CompX[] = "x_raw";
