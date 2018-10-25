@@ -70,7 +70,6 @@ le_result_t brnkl_motion_getCurrentAcceleration(double* xAcc,
   *zAcc *= scaling;
 
 done:
-  LE_INFO("Showing accel X: %f Y: %f Z: %f ", *xAcc, *yAcc, *zAcc);
   return r;
 }
 
