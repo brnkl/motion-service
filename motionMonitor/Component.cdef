@@ -2,6 +2,7 @@ cflags:
 {
   -std=c99
   -I$BRNKL_ROOT/apps/util
+  -I${BRNKL_ROOT}/components/libiioComponent/libiio
 }
 
 requires:
@@ -10,6 +11,18 @@ requires:
   {
      interrupt = le_gpio.api
   }
+  component:
+  {
+    $BRNKL_ROOT/components/libiioComponent
+  }
+  lib:
+  {
+    libiio.so
+    libiio.so.0
+    libiio.so.0.15
+  }
+
+
 }
 
 provides:
