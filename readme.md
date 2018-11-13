@@ -25,6 +25,25 @@ The Accelerometer measures acceleration in 3 dimensions, X, Y, and Z. These dime
 If adjusting the value of `DEFAUTL_THRESHOLD_MS2` keep in mind that gravity implies a motionless magnitude of -9.8m/s^2.
 
 ## Bindings 
+```
+...
+bindings:
+{
+  myClientApp.myComponent.brnkl_motion -> motionService.brnkl_motion
+}
+...
+```
+```
+...
+requires:
+{
+  api:
+  {
+    brnkl_motion.api
+  }
+}
+...
+```
 
 ## Example 
 
