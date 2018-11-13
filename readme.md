@@ -10,6 +10,7 @@ to include the util module.
 
 ## Building
 Compile the project using 
+
 wp85: 	``make wp85``
 
 ## Setting Variables
@@ -21,5 +22,10 @@ The Accelerometer measures acceleration in 3 dimensions, X, Y, and Z. These dime
 
 `#define DEFAULT_THRESHOLD_MS2 17` determines the magnitude of the resulting vector that will trigger the application to detect a sudden impact. 
 
-If adjusting the value of `DEFAUTL_THRESHOLD_MS2` keep in mind that gravity implies a motionless magnitude of -9.8m/s^2
+If adjusting the value of `DEFAUTL_THRESHOLD_MS2` keep in mind that gravity implies a motionless magnitude of -9.8m/s^2.
+
+## Bindings 
+
+## Example 
+
 
