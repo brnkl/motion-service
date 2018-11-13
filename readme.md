@@ -14,7 +14,7 @@ wp85: 	``make wp85``
 
 ## Setting Variables
 To change the sensitivity of impact detection you must edit the `motionMonitor/motionMonitor.c` file.
-The Accelerometer measures acceleration in 3 dimensions, X, Y, and Z. These dimensions of acceleration are recorded and the magnitude of their resulting vector is calculated using ``double impactMagnitude = sqrt(x * x + y * y + z * z);``
+The Accelerometer measures acceleration in 3 dimensions, X, Y, and Z. These dimensions of acceleration are recorded and the magnitude of their resulting vector is calculated using ``double impactMagnitude = sqrt(x * x + y * y + z * z);``. As visualized in the image below.
 
 ![Magnitude](https://www.intmath.com/vectors/img/235-3D-vector.png)
 
@@ -23,4 +23,3 @@ The Accelerometer measures acceleration in 3 dimensions, X, Y, and Z. These dime
 
 If adjusting the value of `DEFAUTL_THRESHOLD_MS2` keep in mind that gravity implies a motionless magnitude of -9.8m/s^2
 
-As visualized with the red vector here. 
