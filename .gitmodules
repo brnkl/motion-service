@@ -1,0 +1,3 @@
+[submodule "brnkl-util"]
+	path = brnkl-util
+	url = https://github.com/brnkl/brnkl-util.git
