@@ -47,7 +47,7 @@ requires:
 ```
 
 
-## Example
+## Examples
 For getting a list of impact information you may follow this example.
 ```
 double x_arr [array_size];
