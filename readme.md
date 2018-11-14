@@ -4,8 +4,7 @@ This application is designed to operate on a [MongOH Red](https://mangoh.io/mang
 
 ## Prerequisites
 
-When cloning use ``git clone --recurse-submodule https://github.com/brnkl/motion-service.git`` 
-to include the util module.
+When cloning use ``git clone https://github.com/brnkl/motion-service.git``.
 
 
 ## Building
