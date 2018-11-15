@@ -61,16 +61,16 @@ le_result_t result = brnkl_motion_getCurrentAccleration(&v->x, &v->y, &v->z);
 ```
 To get a list of all recent impacts. 
 
-```
-  double xAcc[N_MAX_IMPACT_VALUES], yAcc[N_MAX_IMPACT_VALUES], zAcc[N_MAX_IMPACT_VALUES];
-  
-  uint64_t timestamps[N_MAX_IMPACT_VALUES];
-  
-  size_t xSize = N_MAX_IMPACT_VALUES, ySize = N_MAX_IMPACT_VALUES,
-         zSize = N_MAX_IMPACT_VALUES, timestampsSize = N_MAX_IMPACT_VALUES;
-  
-  le_result_t r = brnkl_motion_getSuddenImpact(
-      xAcc, &xSize, yAcc, &ySize, zAcc, &zSize, timestamps, &timestampsSize);
-  
+```C
+double xAcc[N_MAX_IMPACT_VALUES], yAcc[N_MAX_IMPACT_VALUES], 
+    zAcc[N_MAX_IMPACT_VALUES];
+
+uint64_t timestamps[N_MAX_IMPACT_VALUES];
+
+size_t xSize = N_MAX_IMPACT_VALUES, ySize = N_MAX_IMPACT_VALUES,
+       zSize = N_MAX_IMPACT_VALUES, timestampsSize = N_MAX_IMPACT_VALUES;
+
+le_result_t r = brnkl_motion_getSuddenImpact(
+    xAcc, &xSize, yAcc, &ySize, zAcc, &zSize, timestamps, &timestampsSize);
 ```
 
