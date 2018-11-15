@@ -62,7 +62,8 @@ le_result_t result = brnkl_motion_getCurrentAccleration(&v->x, &v->y, &v->z);
 To get a list of all recent impacts. 
 
 ```C
-double xAcc[N_MAX_IMPACT_VALUES], yAcc[N_MAX_IMPACT_VALUES], zAcc[N_MAX_IMPACT_VALUES];
+double xAcc[N_MAX_IMPACT_VALUES], yAcc[N_MAX_IMPACT_VALUES], 
+    zAcc[N_MAX_IMPACT_VALUES];
 
 uint64_t timestamps[N_MAX_IMPACT_VALUES];
 
