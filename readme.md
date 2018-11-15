@@ -82,7 +82,7 @@ double xAcc[N_MAX_IMPACT_VALUES], yAcc[N_MAX_IMPACT_VALUES], zAcc[N_MAX_IMPACT_V
     recordRes[j++] =
         le_avdata_RecordFloat(ref, "impactz", zAcc[i], timestamps[i]);
   }
-=======
+```
 
 ## Examples
 For getting a list of impact information you may follow this example.
@@ -113,5 +113,4 @@ le_result_t result = getCurrentAcceleration(x_val, y_val, z_val);
 
 LE_INFO("Current Acceleration: X: %d - Y: %d - Z: %d");
 
->>>>>>> 7ba91139470e24608d255ec0156444e26133d935
 ```
