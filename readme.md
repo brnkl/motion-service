@@ -46,7 +46,6 @@ requires:
 ...
 ```
 
-<<<<<<< HEAD
 ## Example 
 For getting the current acceleration
 ```
