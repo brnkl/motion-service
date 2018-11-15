@@ -1,7 +1,7 @@
 cflags:
 {
   -std=c99
-  -I$BRNKL_ROOT/apps/util
+  -I$CURDIR/../util
 }
 
 requires:
@@ -23,5 +23,5 @@ provides:
 sources:
 {
   motionMonitor.c
-  $BRNKL_ROOT/apps/util/util.c
+  $CURDIR/../util/util.c
 }
