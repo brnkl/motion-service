@@ -48,7 +48,7 @@ requires:
 
 ## Example 
 For getting the current acceleration
-```
+```C
 struct Acceleration{
 	double x;
 	double y;
