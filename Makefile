@@ -1,4 +1,6 @@
 wp85:
-	mkapp -t -b motionService.adef
+	mkapp -t wp85 motionService.adef -b
 clean:
-	rm -r _build_*
+	rm -r _build_* \
+	 *.update \
+	 *.app

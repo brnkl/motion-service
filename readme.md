@@ -4,8 +4,7 @@ This application is designed to operate on a [MongOH Red](https://mangoh.io/mang
 
 ## Prerequisites
 
-When cloning use ``git clone --recurse-submodule https://github.com/brnkl/motion-service.git`` 
-to include the util module.
+When cloning use ``git clone https://github.com/brnkl/motion-service.git``.
 
 
 ## Building
@@ -25,6 +24,7 @@ The Accelerometer measures acceleration in 3 dimensions, X, Y, and Z. These dime
 If adjusting the value of `DEFAUTL_THRESHOLD_MS2` keep in mind that gravity implies a motionless magnitude of -9.8m/s^2.
 
 ## Bindings 
+App.adef
 ```
 ...
 bindings:
@@ -33,6 +33,7 @@ bindings:
 }
 ...
 ```
+Component.cdef
 ```
 ...
 requires:
@@ -45,6 +46,7 @@ requires:
 ...
 ```
 
+<<<<<<< HEAD
 ## Example 
 For getting the current acceleration
 ```
@@ -80,4 +82,36 @@ double xAcc[N_MAX_IMPACT_VALUES], yAcc[N_MAX_IMPACT_VALUES], zAcc[N_MAX_IMPACT_V
     recordRes[j++] =
         le_avdata_RecordFloat(ref, "impactz", zAcc[i], timestamps[i]);
   }
+=======
+
+## Examples
+For getting a list of impact information you may follow this example.
+```
+double x_arr [array_size];
+double y_arr [array_size];
+double z_arr [array_size];
+uint64 timestamps[array_size];
+
+// Fills arrays with x, y, and z acceleration that have been recorded at each impact.
+
+le_result_t result = getSuddenImpact(x_arr, y_arr, z_arr, timestamps);
+
+for (int i = 0; i < array_size; i++)
+    LE_INFO("X: %d - Y: %d - Z: %d - time: %ul", x_arr[i], 
+                                                    y_arr[i], 
+                                                    z_arr[i],
+                                                    timestamps[i]);
+```
+For receiving the current acceleration only
+
+```
+double x_val;
+double y_val;
+double z_val;
+
+le_result_t result = getCurrentAcceleration(x_val, y_val, z_val);
+
+LE_INFO("Current Acceleration: X: %d - Y: %d - Z: %d");
+
+>>>>>>> 7ba91139470e24608d255ec0156444e26133d935
 ```
