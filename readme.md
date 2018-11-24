@@ -6,11 +6,14 @@ This application is designed to operate on a [MongOH Red](https://mangoh.io/mang
 
 When cloning use ``git clone https://github.com/brnkl/motion-service.git``.
 
-
 ## Building
 Compile the project using 
 
 wp85: 	``make wp85``
+
+### Flags
+
+- `-DMOTION_MONITOR_USE_THREAD` enables thread based mode (polling). By default, an interrupt pin is used to detect motion. This results in lower traffic on the bus (i2c or SPI), but also requires special drivers for the BMI160.
 
 ## Setting Variables
 To change the sensitivity of impact detection you must edit the `motionMonitor/motionMonitor.c` file.
