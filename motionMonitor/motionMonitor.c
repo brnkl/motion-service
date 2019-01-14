@@ -1,13 +1,11 @@
 #include "interfaces.h"
 #include "legato.h"
 #include "util.h"
-#include <pthread.h>
 
 #define N_CHANGE_BLOCKS 200
-#define SAMPLE_PERIOD_MS 100
 #define DEFAULT_THRESHOLD_MS2 17
-
-void* impactMonitor(void*);
+// only used if -DMOTION_MONITOR_USE_THREAD is set
+#define SAMPLE_PERIOD_MS 100
 
 static const char FormatStr[] = "/sys/bus/iio/devices/iio:device0/in_%s_%s";
 static const char AccType[] = "accel";
@@ -24,7 +22,9 @@ struct suddenImpacts_t {
   double y[N_CHANGE_BLOCKS];
   double z[N_CHANGE_BLOCKS];
   uint64_t timestamps[N_CHANGE_BLOCKS];
+#ifdef MOTION_MONITOR_USE_THREAD
   pthread_mutex_t lock;
+#endif
 } impacts = {0, DEFAULT_THRESHOLD_MS2};
 
 /*
@@ -69,6 +69,7 @@ le_result_t recordImpact(struct suddenImpacts_t* it,
                          double xAcc,
                          double yAcc,
                          double zAcc) {
+  LE_INFO("Recording impact...");
   if (it->nValues > N_CHANGE_BLOCKS || it->nValues > N_CHANGE_BLOCKS ||
       it->nValues > N_CHANGE_BLOCKS)
     return LE_OUT_OF_RANGE;
@@ -97,8 +98,9 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc,
   if (!impacts.nValues)
     LE_INFO("No Sudden Impacts to Report");
   else {
+#ifdef MOTION_MONITOR_USE_THREAD
     pthread_mutex_lock(&impacts.lock);
-
+#endif
     if (impacts.nValues > *xSize || impacts.nValues > *ySize ||
         impacts.nValues > *zSize)
       return LE_OUT_OF_RANGE;
@@ -113,12 +115,15 @@ le_result_t brnkl_motion_getSuddenImpact(double* xAcc,
     *xSize = *ySize = *zSize = impacts.nValues;
 
     impacts.nValues = 0;
-
+#ifdef MOTION_MONITOR_USE_THREAD
     pthread_mutex_unlock(&impacts.lock);
+#endif
   }
 
   return LE_OK;
 }
+
+#ifdef MOTION_MONITOR_USE_THREAD
 
 /*
  * Monitors accelerometer from iio on 100ms intervals
@@ -171,3 +176,37 @@ void initThread() {
 COMPONENT_INIT {
   initThread();
 }
+
+#else
+
+void interruptHandler(bool val, void* ctx) {
+  double x, y, z;
+  le_result_t r = LE_OK;
+  struct suddenImpacts_t* it = ctx;
+  if (ctx == NULL) {
+    LE_ERROR("No context passed");
+  } else {
+    brnkl_motion_getCurrentAcceleration(&x, &y, &z);
+
+    double impactMagnitude = sqrt(x * x + y * y + z * z);
+
+    if (impactMagnitude > it->threshold) {
+      // 3. add x, y, z to impact array
+      r = recordImpact(it, x, y, z);
+    }
+    if (r != LE_OK)
+      LE_ERROR("Impact Not Recorded");
+  }
+}
+
+void initGpio() {
+  interrupt_SetInput(INTERRUPT_ACTIVE_HIGH);
+  interrupt_AddChangeEventHandler(INTERRUPT_EDGE_RISING, interruptHandler,
+                                  &impacts, 0);
+}
+
+COMPONENT_INIT {
+  initGpio();
+}
+
+#endif
