@@ -9,7 +9,6 @@
 
 static const char FormatStr[] = "/sys/bus/iio/devices/iio:device0/in_%s_%s";
 static const char AccType[] = "accel";
-static const char GyroType[] = "anglvel";
 static const char CompX[] = "x_raw";
 static const char CompY[] = "y_raw";
 static const char CompZ[] = "z_raw";
